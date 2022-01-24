@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/albho/tinyapp/issues"
   },
-  "homepage": "https://github.com/albho/tinyapp#readme"
+  "homepage": "https://github.com/albho/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.17.2"
+  }
 }
