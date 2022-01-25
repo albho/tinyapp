@@ -19,13 +19,25 @@
   <body>
     <%- include('partials/_header') %>
     <main style="margin: 1em">
-      <form action="/login" method="POST">
-        <label for="email">Email:</label>
-        <input type="email" name="email" />
-        <label for="password">Password:</label>
-        <input type="password" name="password" />
-        <button type="submit" class="btn btn-outline-primary">Submit</button>
-      </form>
+      <div class="container">
+        <h3>Log In</h3>
+        <form action="/login" method="POST">
+          <div class="mb-3">
+            <label for="email" class="form-label">Email address</label>
+            <input type="email" name="email" class="form-control" id="email" />
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input
+              type="password"
+              name="password"
+              class="form-control"
+              id="password"
+            />
+          </div>
+          <button type="submit" class="btn btn-primary">Log In</button>
+        </form>
+      </div>
     </main>
     <!-- Bootstrap JS -->
     <script

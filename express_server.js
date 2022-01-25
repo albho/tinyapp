@@ -118,10 +118,14 @@ app.get("/login", (req, res) => {
   res.render("login", templateVars);
 });
 
-// handle username submission
+// handle login submission
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
   const userId = findUserId(email);
+
+  if (!email || !password) {
+    return res.status(403).send("Email or password is empty.");
+  }
 
   if (!userId || password !== users[userId].password) {
     return res.status(403).send("Incorrect email or password.");
@@ -131,7 +135,7 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 
-// handle logout (clear username cookie)
+// handle logout (clear user_id cookie)
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
   res.redirect("/urls");
@@ -151,11 +155,11 @@ app.post("/register", (req, res) => {
   const id = generateRandomString();
 
   if (!email || !password) {
-    return res.status(400).send("Email or password is empty.");
+    return res.status(403).send("Email or password is empty.");
   }
 
   if (findUserId(email)) {
-    return res.status(400).send("Email already exists.");
+    return res.status(403).send("Email already exists.");
   }
 
   users[id] = {
