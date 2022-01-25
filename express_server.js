@@ -31,11 +31,11 @@ function generateRandomString() {
   return randomString;
 }
 
-// check if an email exists
-function emailExists(email) {
+// check if an email exists (return user_id if true, else false)
+function findUserId(email) {
   for (const user in users) {
     if (users[user].email === email) {
-      return true;
+      return user;
     }
   }
 
@@ -109,11 +109,25 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 // AUTHORIZATION & AUTHENTICATION
+// display login form
+app.get("/login", (req, res) => {
+  const currentUser = users[req.cookies["user_id"]];
+  const templateVars = {
+    user: currentUser,
+  };
+  res.render("login", templateVars);
+});
+
 // handle username submission
 app.post("/login", (req, res) => {
-  const { username } = req.body;
+  const { email, password } = req.body;
+  const userId = findUserId(email);
 
-  res.cookie("username", username);
+  if (!userId || password !== users[userId].password) {
+    return res.status(403).send("Incorrect email or password.");
+  }
+
+  res.cookie("user_id", userId);
   res.redirect("/urls");
 });
 
@@ -140,7 +154,7 @@ app.post("/register", (req, res) => {
     return res.status(400).send("Email or password is empty.");
   }
 
-  if (emailExists(email)) {
+  if (findUserId(email)) {
     return res.status(400).send("Email already exists.");
   }
 
