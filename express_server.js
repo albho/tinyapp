@@ -82,6 +82,12 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 
+// handle logout (clear username cookie)
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");
+  res.redirect("/urls");
+});
+
 // app.get("/", (req, res) => {
 //   res.send("Hello!");
 // });
