@@ -31,6 +31,16 @@ function generateRandomString() {
   return randomString;
 }
 
+function emailExists(email) {
+  for (const user in users) {
+    if (users[user].email === email) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 // home page displaying all shortURLS with corresponding longURLS
 app.get("/urls", (req, res) => {
   const templateVars = {
@@ -101,6 +111,15 @@ app.get("/register", (req, res) => {
 
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).send("Email or password is empty.");
+  }
+
+  if (emailExists(email)) {
+    return res.status(400).send("Email already exists.");
+  }
+
   const id = generateRandomString();
   users[id] = {
     id,
