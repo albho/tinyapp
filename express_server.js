@@ -45,58 +45,75 @@ function emailExists(email) {
 // ROUTE HANDLERS
 // home page displaying all shortURLS + longURLS
 app.get("/urls", (req, res) => {
+  const currentUser = users[req.cookies["user_id"]];
   const templateVars = {
     urls: urlDatabase,
-    user: users[req.cookies["user_id"]],
+    user: currentUser,
   };
+
   res.render("urls_index", templateVars);
 });
 
 // display form for creating a new shortURL
 app.get("/urls/new", (req, res) => {
-  const templateVars = { user: users[req.cookies["user_id"]] };
+  const currentUser = users[req.cookies["user_id"]];
+  const templateVars = { user: currentUser };
+
   res.render("urls_new", templateVars);
 });
 
 // handle form submission for creating a new shortURL
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
+
   urlDatabase[shortURL] = req.body.longURL;
   res.redirect(`/urls/${shortURL}`);
 });
 
 // display the newly created shortURL
 app.get("/urls/:shortURL", (req, res) => {
+  const { shortURL } = req.params;
+  const currentUser = users[req.cookies["user_id"]];
   const templateVars = {
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL],
-    user: users[req.cookies["user_id"]],
+    shortURL,
+    longURL: urlDatabase[shortURL],
+    user: currentUser,
   };
+
   res.render("urls_show", templateVars);
 });
 
 // redirect to longURL after clicking on a shortURL
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const { shortURL } = req.params;
+  const longURL = urlDatabase[shortURL];
+
   res.redirect(longURL);
 });
 
 // handle submission for updating a shortURL's longURL
 app.post("/urls/:shortURL", (req, res) => {
-  urlDatabase[req.params.shortURL] = req.body.longURL;
+  const { shortURL } = req.params;
+  const { longURL } = req.body;
+
+  urlDatabase[shortURL] = longURL;
   res.redirect("/urls");
 });
 
 // delete a particular shortURL-longURL pair
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
+  const { shortURL } = req.params;
+
+  delete urlDatabase[shortURL];
   res.redirect("/urls");
 });
 
 // AUTHORIZATION & AUTHENTICATION
 // handle username submission
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
+  const { username } = req.body;
+
+  res.cookie("username", username);
   res.redirect("/urls");
 });
 
@@ -108,12 +125,16 @@ app.post("/logout", (req, res) => {
 
 // display registration form
 app.get("/register", (req, res) => {
-  const templateVars = { user: users[req.cookies["user_id"]] };
+  const currentUser = users[req.cookies["user_id"]];
+  const templateVars = { user: currentUser };
+
   res.render("register", templateVars);
 });
 
+// handle registration
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
+  const id = generateRandomString();
 
   if (!email || !password) {
     return res.status(400).send("Email or password is empty.");
@@ -123,7 +144,6 @@ app.post("/register", (req, res) => {
     return res.status(400).send("Email already exists.");
   }
 
-  const id = generateRandomString();
   users[id] = {
     id,
     email,
@@ -133,6 +153,7 @@ app.post("/register", (req, res) => {
   res.redirect("/urls");
 });
 
+//
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
