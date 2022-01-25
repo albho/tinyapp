@@ -31,13 +31,14 @@ function generateRandomString() {
 
 // home page displaying all shortURLS with corresponding longURLS
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
   res.render("urls_index", templateVars);
 });
 
 // form for creating a new shortURL
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = { username: req.cookies["username"] };
+  res.render("urls_new", templateVars);
 });
 
 // handle form submission for creating a new shortURL
@@ -52,6 +53,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
+    username: req.cookies["username"],
   };
   res.render("urls_show", templateVars);
 });
