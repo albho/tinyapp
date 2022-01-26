@@ -4,6 +4,7 @@ const PORT = 3000;
 const cookieSession = require("cookie-session");
 const bodyParser = require("body-parser");
 const bcrypt = require("bcryptjs");
+require("dotenv").config();
 
 const { urlDatabase } = require("./databases/urlDatabase");
 const { userDatabase } = require("./databases/userDatabase");
@@ -11,7 +12,6 @@ const { findUserId } = require("./helpers/findUserId");
 const { generateId } = require("./helpers/generateId");
 const { shortURLbelongsToUser } = require("./helpers/shortURLbelongsToUser");
 const { urlsForUser } = require("./helpers/urlsForUser");
-const SECRET_KEY = "a_terrible_secret";
 const {
   ERROR_400,
   ERROR_401,
@@ -22,7 +22,7 @@ const {
 app.use(
   cookieSession({
     name: "user_id",
-    keys: [SECRET_KEY],
+    keys: [process.env.SECRET_KEY],
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
   })
 );
