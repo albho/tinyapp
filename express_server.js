@@ -8,24 +8,17 @@ app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
+// simulated databases
+const urlDatabase = {};
+const users = {};
+
 // error messages
 const ERROR_400 = "Please enter a valid email and password";
 const ERROR_401 = "Please log in to continue.";
 const ERROR_403 = "Error: Unauthorized.";
 const ERROR_404 = "Opps! Page not found.";
 
-// simulate databases
-const urlDatabase = {
-  b2xVn2: { userId: "123xyz", longURL: "http://www.lighthouselabs.ca" },
-  "9sm5xK": { userId: "456asd", longURL: "http://www.google.com" },
-};
-
-const users = {
-  "123xyz": { id: "123xyz", email: "lhl@fake.com", password: "lhl" },
-  "456asd": { id: "456asd", email: "bing@fake.com", password: "bing" },
-};
-
-// simulate generating a 'unique' shortURL
+// simulate generating a 'unique' id (for shortURLs and user ids)
 function generateId() {
   const possibleChars =
     "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -66,11 +59,7 @@ function urlsForUser(id) {
 
 // check if a short URL belongs to a user
 function shortURLbelongsToUser(shortURL, currentUserId) {
-  if (
-    urlDatabase[shortURL] &&
-    currentUserId &&
-    urlDatabase[shortURL].userId === currentUserId
-  ) {
+  if (urlDatabase[shortURL] && urlDatabase[shortURL].userId === currentUserId) {
     return true;
   }
 
@@ -80,7 +69,6 @@ function shortURLbelongsToUser(shortURL, currentUserId) {
 // ROUTE HANDLERS
 app.get("/", (req, res) => {
   const currentUser = users[req.cookies["user_id"]];
-
   if (currentUser) {
     return res.redirect("/urls");
   }
@@ -119,9 +107,7 @@ app.get("/urls/new", (req, res) => {
 // display the newly created shortURL
 app.get("/urls/:shortURL", (req, res) => {
   const currentUser = users[req.cookies["user_id"]];
-  const templateVars = {
-    user: currentUser,
-  };
+  const templateVars = { user: currentUser };
 
   if (!currentUser) {
     templateVars.message = ERROR_401;
@@ -142,18 +128,14 @@ app.get("/urls/:shortURL", (req, res) => {
   }
 
   const authorEmail = users[shortURLauthorId].email;
-  templateVars.shortURL = shortURL;
-  templateVars.newURL = newURL;
-  templateVars.authorEmail = authorEmail;
-  res.render("urls_show", templateVars);
+  const newTemplateVars = { ...templateVars, shortURL, newURL, authorEmail };
+  res.render("urls_show", newTemplateVars);
 });
 
 // redirect to longURL after clicking on a shortURL
 app.get("/u/:shortURL", (req, res) => {
   const currentUser = users[req.cookies["user_id"]];
-  const templateVars = {
-    user: currentUser,
-  };
+  const templateVars = { user: currentUser };
 
   if (!currentUser) {
     templateVars.message = ERROR_401;
@@ -212,7 +194,7 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 
-// handle logout (clear user_id cookie)
+// handle logout
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
   res.redirect("/urls");
@@ -233,41 +215,36 @@ app.post("/register", (req, res) => {
     return res.status(400).render("error_page", templateVars);
   }
 
+  // create new user and store info in simulated DB
   const id = generateId();
-  users[id] = {
-    id,
-    email,
-    password,
-  };
-
+  users[id] = { id, email, password };
   res.cookie("user_id", id);
+
   res.redirect("/urls");
 });
 
 // handle form submission for creating a new shortURL
 app.post("/urls", (req, res) => {
   const currentUser = users[req.cookies["user_id"]];
-  const templateVars = {
-    user: currentUser,
-  };
+  const templateVars = { user: null };
 
   if (!currentUser) {
     templateVars.message = ERROR_401;
     return res.status(401).render("auth_prompt", templateVars);
   }
 
+  // create and store new shortURL in simulated DB
   const shortURL = generateId();
   const { longURL } = req.body;
   urlDatabase[shortURL] = { longURL, userId: req.cookies["user_id"] };
+
   res.redirect(`/urls/${shortURL}`);
 });
 
 // handle submission for updating a shortURL's longURL
 app.post("/urls/:shortURL", (req, res) => {
   const currentUser = users[req.cookies["user_id"]];
-  const templateVars = {
-    user: currentUser,
-  };
+  const templateVars = { user: currentUser };
 
   if (!currentUser) {
     templateVars.message = ERROR_401;
@@ -280,17 +257,17 @@ app.post("/urls/:shortURL", (req, res) => {
     return res.status(403).render("error_page", templateVars);
   }
 
+  // update shortURL in simulated DB
   const { longURL } = req.body;
   urlDatabase[shortURL].longURL = longURL;
+
   res.redirect("/urls");
 });
 
 // delete a particular shortURL-longURL pair
 app.post("/urls/:shortURL/delete", (req, res) => {
   const currentUser = users[req.cookies["user_id"]];
-  const templateVars = {
-    user: currentUser,
-  };
+  const templateVars = { user: currentUser };
 
   if (!currentUser) {
     templateVars.message = ERROR_401;
@@ -304,6 +281,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   }
 
   delete urlDatabase[shortURL];
+
   res.redirect("/urls");
 });
 
