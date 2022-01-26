@@ -7,6 +7,7 @@ const findUserByEmail = (email, password, database) => {
       password,
       database[user].password
     );
+
     if (database[user].email === email && passwordsMatch) {
       return user;
     }

@@ -29,14 +29,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
 // ROUTE HANDLERS
+// home page - will redirect to other pages based on auth status
 app.get("/", (req, res) => {
   const currentUser = userDatabase[req.session.user_id];
 
-  if (currentUser) {
-    return res.redirect("/urls");
+  if (!currentUser) {
+    return res.redirect("/login");
   }
 
-  res.redirect("/login");
+  res.redirect("/urls");
 });
 
 // render home page - list all of a user's URLs
@@ -75,6 +76,7 @@ app.get("/urls/:shortURL", (req, res) => {
     return res.status(401).render("auth_prompt", templateVars);
   }
 
+  // if shortURL does not exist, render error page
   const { shortURL } = req.params;
   const newURL = urlDatabase[shortURL];
   if (!newURL) {
@@ -82,6 +84,7 @@ app.get("/urls/:shortURL", (req, res) => {
     return res.status(404).render("error_page", templateVars);
   }
 
+  // if shortURL was not created by the current user, render error page
   const shortURLauthorId = urlDatabase[shortURL].userId;
   if (shortURLauthorId !== req.session.user_id) {
     templateVars.message = ERROR_403;
@@ -103,6 +106,7 @@ app.get("/u/:shortURL", (req, res) => {
     return res.status(401).render("auth_prompt", templateVars);
   }
 
+  // if requested shortURL (or longURL) does not exist in db, render error page
   const { shortURL } = req.params;
   if (!urlDatabase[shortURL] || !urlDatabase[shortURL].longURL) {
     templateVars.message = ERROR_404;
@@ -153,7 +157,6 @@ app.post("/login", (req, res) => {
     return res.status(400).render("error_page", templateVars);
   }
 
-  // res.cookie("user_id", userId);
   req.session.user_id = userId;
   res.redirect("/urls");
 });
@@ -179,10 +182,10 @@ app.post("/register", (req, res) => {
     return res.status(400).render("error_page", templateVars);
   }
 
+  // create new user
   const userId = generateId();
   const hashedPassword = bcrypt.hashSync(password, 10);
   userDatabase[userId] = { email, id: userId, password: hashedPassword };
-  // res.cookie("user_id", id);
   req.session.user_id = userId;
   res.redirect("/urls");
 });
@@ -197,6 +200,7 @@ app.post("/urls", (req, res) => {
     return res.status(401).render("auth_prompt", templateVars);
   }
 
+  // create new shortURL
   const shortURL = generateId();
   const { longURL } = req.body;
   urlDatabase[shortURL] = { longURL, userId: req.session.user_id };
@@ -213,6 +217,7 @@ app.post("/urls/:shortURL", (req, res) => {
     return res.status(401).render("auth_prompt", templateVars);
   }
 
+  // restrict user from updating a shortURL that they did not create
   const { shortURL } = req.params;
   if (!belongsToUser(shortURL, req.session.user_id, urlDatabase)) {
     templateVars.message = ERROR_403;
@@ -234,6 +239,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     return res.status(401).render("auth_prompt", templateVars);
   }
 
+  // restrict user from deleting a shortURL that they did not create
   const { shortURL } = req.params;
   if (!belongsToUser(shortURL, req.session.user_id, urlDatabase)) {
     templateVars.message = ERROR_403;
