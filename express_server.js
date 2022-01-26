@@ -4,13 +4,13 @@ const PORT = 3000;
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 
+const urlDatabase = require("./databases/urlDatabase");
+const userDatabase = require("./databases/userDatabase");
+const findUserId = require("./helpers/findUserId");
+
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
-
-// simulated databases
-const urlDatabase = {};
-const users = {};
 
 // error messages
 const ERROR_400 = "Incorrect email or password.";
@@ -31,17 +31,6 @@ function generateId() {
   }
 
   return randomString;
-}
-
-// check if an email exists (return user_id if true, else false)
-function findUserId(email, password) {
-  for (const user in users) {
-    if (users[user].email === email && users[user].password === password) {
-      return user;
-    }
-  }
-
-  return false;
 }
 
 // returns URLs created by logged-in user
@@ -68,7 +57,7 @@ function shortURLbelongsToUser(shortURL, currentUserId) {
 
 // ROUTE HANDLERS
 app.get("/", (req, res) => {
-  const currentUser = users[req.cookies["user_id"]];
+  const currentUser = userDatabase[req.cookies["user_id"]];
 
   if (currentUser) {
     return res.redirect("/urls");
@@ -79,7 +68,7 @@ app.get("/", (req, res) => {
 
 // render home page - list all of a user's URLs
 app.get("/urls", (req, res) => {
-  const currentUser = users[req.cookies["user_id"]];
+  const currentUser = userDatabase[req.cookies["user_id"]];
   const currentUserUrls = urlsForUser(req.cookies["user_id"]);
   const templateVars = { user: currentUser, urls: currentUserUrls };
 
@@ -93,7 +82,7 @@ app.get("/urls", (req, res) => {
 
 // render page for creating a new shortURL
 app.get("/urls/new", (req, res) => {
-  const currentUser = users[req.cookies["user_id"]];
+  const currentUser = userDatabase[req.cookies["user_id"]];
 
   if (!currentUser) {
     return res.redirect("/login");
@@ -105,7 +94,7 @@ app.get("/urls/new", (req, res) => {
 
 // render the newly created shortURL
 app.get("/urls/:shortURL", (req, res) => {
-  const currentUser = users[req.cookies["user_id"]];
+  const currentUser = userDatabase[req.cookies["user_id"]];
   const templateVars = { user: currentUser };
 
   if (!currentUser) {
@@ -126,14 +115,14 @@ app.get("/urls/:shortURL", (req, res) => {
     return res.status(403).render("error_page", templateVars);
   }
 
-  const authorEmail = users[shortURLauthorId].email;
+  const authorEmail = userDatabase[shortURLauthorId].email;
   const newTemplateVars = { ...templateVars, shortURL, newURL, authorEmail };
   res.render("urls_show", newTemplateVars);
 });
 
 // redirect to longURL after clicking on a shortURL
 app.get("/u/:shortURL", (req, res) => {
-  const currentUser = users[req.cookies["user_id"]];
+  const currentUser = userDatabase[req.cookies["user_id"]];
   const templateVars = { user: currentUser };
 
   if (!currentUser) {
@@ -153,7 +142,7 @@ app.get("/u/:shortURL", (req, res) => {
 
 // login page
 app.get("/login", (req, res) => {
-  const currentUser = users[req.cookies["user_id"]];
+  const currentUser = userDatabase[req.cookies["user_id"]];
 
   if (currentUser) {
     return res.redirect("/urls");
@@ -165,7 +154,7 @@ app.get("/login", (req, res) => {
 
 // registration page
 app.get("/register", (req, res) => {
-  const currentUser = users[req.cookies["user_id"]];
+  const currentUser = userDatabase[req.cookies["user_id"]];
 
   if (currentUser) {
     return res.redirect("/urls");
@@ -217,14 +206,14 @@ app.post("/register", (req, res) => {
   }
 
   const id = generateId();
-  users[id] = { id, email, password };
+  userDatabase[id] = { id, email, password };
   res.cookie("user_id", id);
   res.redirect("/urls");
 });
 
 // create a new shortURL
 app.post("/urls", (req, res) => {
-  const currentUser = users[req.cookies["user_id"]];
+  const currentUser = userDatabase[req.cookies["user_id"]];
   const templateVars = { user: null };
 
   if (!currentUser) {
@@ -240,7 +229,7 @@ app.post("/urls", (req, res) => {
 
 // update a shortURL's longURL
 app.post("/urls/:shortURL", (req, res) => {
-  const currentUser = users[req.cookies["user_id"]];
+  const currentUser = userDatabase[req.cookies["user_id"]];
   const templateVars = { user: currentUser };
 
   if (!currentUser) {
@@ -261,7 +250,7 @@ app.post("/urls/:shortURL", (req, res) => {
 
 // delete a particular shortURL
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const currentUser = users[req.cookies["user_id"]];
+  const currentUser = userDatabase[req.cookies["user_id"]];
   const templateVars = { user: currentUser };
 
   if (!currentUser) {
