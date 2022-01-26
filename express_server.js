@@ -8,7 +8,7 @@ require("dotenv").config();
 
 const { urlDatabase } = require("./databases/urlDatabase");
 const { userDatabase } = require("./databases/userDatabase");
-const { findUserId } = require("./helpers/findUserId");
+const { findUserByEmail } = require("./helpers/findUserByEmail");
 const { generateId } = require("./helpers/generateId");
 const { shortURLbelongsToUser } = require("./helpers/shortURLbelongsToUser");
 const { urlsForUser } = require("./helpers/urlsForUser");
@@ -148,7 +148,7 @@ app.post("/login", (req, res) => {
     return res.status(400).render("error_page", templateVars);
   }
 
-  const userId = findUserId(email, password);
+  const userId = findUserByEmail(email, password, userDatabase);
   if (!userId) {
     templateVars.message = ERROR_400;
     return res.status(400).render("error_page", templateVars);
@@ -175,7 +175,7 @@ app.post("/register", (req, res) => {
     return res.status(400).render("error_page", templateVars);
   }
 
-  if (findUserId(email, password)) {
+  if (findUserByEmail(email, password, userDatabase)) {
     templateVars.message = ERROR_400;
     return res.status(400).render("error_page", templateVars);
   }
