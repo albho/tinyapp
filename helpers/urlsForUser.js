@@ -1,5 +1,5 @@
 // returns URLs created by logged-in user
-function urlsForUser(id, database) {
+const urlsForUser = (id, database) => {
   const userURLs = {};
 
   for (const url in database) {
@@ -9,6 +9,6 @@ function urlsForUser(id, database) {
   }
 
   return userURLs;
-}
+};
 
 module.exports = { urlsForUser };

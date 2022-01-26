@@ -10,7 +10,7 @@ const { urlDatabase } = require("./databases/urlDatabase");
 const { userDatabase } = require("./databases/userDatabase");
 const { findUserByEmail } = require("./helpers/findUserByEmail");
 const { generateId } = require("./helpers/generateId");
-const { shortURLbelongsToUser } = require("./helpers/shortURLbelongsToUser");
+const { belongsToUser } = require("./helpers/belongsToUser");
 const { urlsForUser } = require("./helpers/urlsForUser");
 const {
   ERROR_400,
@@ -215,7 +215,7 @@ app.post("/urls/:shortURL", (req, res) => {
   }
 
   const { shortURL } = req.params;
-  if (!shortURLbelongsToUser(shortURL, req.session.user_id, urlDatabase)) {
+  if (!belongsToUser(shortURL, req.session.user_id, urlDatabase)) {
     templateVars.message = ERROR_403;
     return res.status(403).render("error_page", templateVars);
   }
@@ -236,7 +236,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   }
 
   const { shortURL } = req.params;
-  if (!shortURLbelongsToUser(shortURL, req.session.user_id, urlDatabase)) {
+  if (!belongsToUser(shortURL, req.session.user_id, urlDatabase)) {
     templateVars.message = ERROR_403;
     return res.status(403).render("error_page", templateVars);
   }

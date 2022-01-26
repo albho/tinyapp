@@ -1,5 +1,5 @@
 // simulate generating a 'unique' id (for shortURLs and user ids)
-function generateId() {
+const generateId = () => {
   const possibleChars =
     "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const stringLength = 6;
@@ -11,6 +11,6 @@ function generateId() {
   }
 
   return randomString;
-}
+};
 
 module.exports = { generateId };
