@@ -9,6 +9,7 @@ const { urlDatabase } = require("./databases/urlDatabase");
 const { userDatabase } = require("./databases/userDatabase");
 const { findUserId } = require("./helpers/findUserId");
 const { generateId } = require("./helpers/generateId");
+const { shortURLbelongsToUser } = require("./helpers/shortURLbelongsToUser");
 const { urlsForUser } = require("./helpers/urlsForUser");
 const {
   ERROR_400,

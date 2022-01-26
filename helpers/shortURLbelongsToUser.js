@@ -1,4 +1,4 @@
-const urlDatabase = require("../databases/urlDatabase");
+const { urlDatabase } = require("../databases/urlDatabase");
 
 // check if a short URL belongs to a user
 function shortURLbelongsToUser(shortURL, currentUserId) {
