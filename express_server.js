@@ -4,7 +4,6 @@ const PORT = 3000;
 const cookieSession = require("cookie-session");
 const bodyParser = require("body-parser");
 const bcrypt = require("bcryptjs");
-require("dotenv").config();
 
 const { urlDatabase } = require("./databases/urlDatabase");
 const { userDatabase } = require("./databases/userDatabase");
@@ -22,7 +21,7 @@ const {
 app.use(
   cookieSession({
     name: "user_id",
-    keys: [process.env.SECRET_KEY],
+    keys: ["terrible_secret"],
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
   })
 );
