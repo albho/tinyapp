@@ -19,11 +19,16 @@
   <body>
     <%- include('partials/_header') %>
     <main style="margin: 1em">
-      Please
-      <a href="/login">Log In</a>
-      or
-      <a href="/register">Create an Account</a>
-      to create and view shortURLS.
+      <div>
+        <h5><%= message %></h5>
+      </div>
+      <div>
+        Please
+        <a href="/login">Log In</a>
+        or
+        <a href="/register">Create an Account</a>
+        to continue.
+      </div>
     </main>
     <!-- Bootstrap JS -->
     <script
