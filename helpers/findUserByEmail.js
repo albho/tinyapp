@@ -12,7 +12,7 @@ const findUserByEmail = (email, password, database) => {
     }
   }
 
-  return false;
+  return null;
 };
 
 module.exports = { findUserByEmail };
