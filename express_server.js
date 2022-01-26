@@ -72,6 +72,17 @@ function shortURLbelongsToUser(shortURL, currentUserId) {
 }
 
 // ROUTE HANDLERS
+app.get("/", (req, res) => {
+  const currentUserId = req.cookies["user_id"];
+  const currentUser = users[currentUserId];
+
+  if (currentUser) {
+    return res.redirect("/urls");
+  }
+
+  res.redirect("/login");
+});
+
 // home page displaying all shortURLS + longURLS
 app.get("/urls", (req, res) => {
   const currentUserId = req.cookies["user_id"];
