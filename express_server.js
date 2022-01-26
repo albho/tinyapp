@@ -75,7 +75,6 @@ function shortURLbelongsToUser(shortURL, currentUserId) {
 app.get("/", (req, res) => {
   const currentUserId = req.cookies["user_id"];
   const currentUser = users[currentUserId];
-
   if (currentUser) {
     return res.redirect("/urls");
   }
@@ -92,7 +91,6 @@ app.get("/urls", (req, res) => {
     urls: currentUserUrls,
     user: currentUser,
   };
-
   if (!currentUser) {
     return res.render("redirect", templateVars);
   }
@@ -104,37 +102,33 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   const currentUserId = req.cookies["user_id"];
   const currentUser = users[currentUserId];
-  const templateVars = { user: currentUser };
-
   if (!currentUser) {
     return res.redirect("/login");
   }
 
+  const templateVars = { user: currentUser };
   res.render("urls_new", templateVars);
-});
-
-// handle form submission for creating a new shortURL
-app.post("/urls", (req, res) => {
-  const currentUserId = req.cookies["user_id"];
-  const currentUser = users[currentUserId];
-  const shortURL = generateRandomString();
-  const { longURL } = req.body;
-
-  if (!currentUser) {
-    return res.status(403).send("Please log in to continue.");
-  }
-
-  urlDatabase[shortURL] = { longURL, userId: currentUserId };
-  res.redirect(`/urls/${shortURL}`);
 });
 
 // display the newly created shortURL
 app.get("/urls/:shortURL", (req, res) => {
   const currentUserId = req.cookies["user_id"];
   const currentUser = users[currentUserId];
+  if (!currentUser) {
+    return res.send("Pls log in");
+  }
+
   const { shortURL } = req.params;
   const newURL = urlDatabase[shortURL];
+  if (!newURL) {
+    return res.send("Not found");
+  }
+
   const shortURLauthorId = urlDatabase[shortURL].userId;
+  if (shortURLauthorId !== currentUserId) {
+    return res.send("Not found");
+  }
+
   const authorEmail = users[shortURLauthorId].email;
   const templateVars = {
     shortURL,
@@ -143,79 +137,61 @@ app.get("/urls/:shortURL", (req, res) => {
     user: currentUser,
   };
 
-  if (shortURLauthorId !== currentUserId) {
-    return res.render("redirect", templateVars);
-  }
-
   res.render("urls_show", templateVars);
 });
 
 // redirect to longURL after clicking on a shortURL
 app.get("/u/:shortURL", (req, res) => {
+  const currentUserId = req.cookies["user_id"];
+  const currentUser = users[currentUserId];
+  if (!currentUser) {
+    return res.send("Pls log in");
+  }
+  
   const { shortURL } = req.params;
-  const longURL = urlDatabase[shortURL].longURL;
+  if (!urlDatabase[shortURL] || !urlDatabase[shortURL].longURL) {
+    return res.send("URL does not exist");
+  }
 
+  const longURL = urlDatabase[shortURL].longURL;
   res.redirect(longURL);
 });
 
-// handle submission for updating a shortURL's longURL
-app.post("/urls/:shortURL", (req, res) => {
-  const currentUserId = req.cookies["user_id"];
-  const currentUser = users[currentUserId];
-  const { shortURL } = req.params;
-  const { longURL } = req.body;
-
-  const templateVars = {
-    user: currentUser,
-    message: "You cannot edit a short URL that you did not create.",
-  };
-
-  if (!shortURLbelongsToUser(shortURL, currentUserId)) {
-    return res.render("error_page", templateVars);
-  }
-
-  urlDatabase[shortURL].longURL = longURL;
-  res.redirect("/urls");
-});
-
-// delete a particular shortURL-longURL pair
-app.post("/urls/:shortURL/delete", (req, res) => {
-  const currentUserId = req.cookies["user_id"];
-  const currentUser = users[currentUserId];
-  const { shortURL } = req.params;
-  const templateVars = {
-    user: currentUser,
-    message: "You cannot delete a short URL that you did not create.",
-  };
-
-  if (!shortURLbelongsToUser(shortURL, currentUserId)) {
-    return res.render("error_page", templateVars);
-  }
-
-  delete urlDatabase[shortURL];
-  res.redirect("/urls");
-});
-
-// AUTHORIZATION & AUTHENTICATION
 // display login form
 app.get("/login", (req, res) => {
   const currentUserId = req.cookies["user_id"];
   const currentUser = users[currentUserId];
+  if (currentUser) {
+    return res.redirect("/urls");
+  }
+
   const templateVars = {
     user: currentUser,
   };
+
   res.render("login", templateVars);
+});
+
+// display registration form
+app.get("/register", (req, res) => {
+  const currentUserId = req.cookies["user_id"];
+  const currentUser = users[currentUserId];
+  if (currentUser) {
+    return res.redirect("/urls");
+  }
+
+  const templateVars = { user: currentUser };
+  res.render("register", templateVars);
 });
 
 // handle login submission
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-  const userId = findUserId(email);
-
   if (!email || !password) {
     return res.status(403).send("Email or password is empty.");
   }
 
+  const userId = findUserId(email);
   if (!userId || password !== users[userId].password) {
     return res.status(403).send("Incorrect email or password.");
   }
@@ -230,20 +206,9 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls");
 });
 
-// display registration form
-app.get("/register", (req, res) => {
-  const currentUserId = req.cookies["user_id"];
-  const currentUser = users[currentUserId];
-  const templateVars = { user: currentUser };
-
-  res.render("register", templateVars);
-});
-
 // handle registration
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
-  const id = generateRandomString();
-
   if (!email || !password) {
     return res.status(403).send("Email or password is empty.");
   }
@@ -252,12 +217,71 @@ app.post("/register", (req, res) => {
     return res.status(403).send("Email already exists.");
   }
 
+  const id = generateRandomString();
   users[id] = {
     id,
     email,
     password,
   };
+
   res.cookie("user_id", id);
+  res.redirect("/urls");
+});
+
+// handle form submission for creating a new shortURL
+app.post("/urls", (req, res) => {
+  const currentUserId = req.cookies["user_id"];
+  const currentUser = users[currentUserId];
+  if (!currentUser) {
+    return res.status(403).send("Please log in to continue.");
+  }
+
+  const shortURL = generateRandomString();
+  const { longURL } = req.body;
+  urlDatabase[shortURL] = { longURL, userId: currentUserId };
+  res.redirect(`/urls/${shortURL}`);
+});
+
+// handle submission for updating a shortURL's longURL
+app.post("/urls/:shortURL", (req, res) => {
+  const currentUserId = req.cookies["user_id"];
+  const currentUser = users[currentUserId];
+  if (!currentUser) {
+    return res.send("Please log in");
+  }
+
+  const { shortURL } = req.params;
+  const { longURL } = req.body;
+  const templateVars = {
+    user: currentUser,
+    message: "You cannot edit a short URL that you did not create.",
+  };
+  if (!shortURLbelongsToUser(shortURL, currentUserId)) {
+    return res.render("error_page", templateVars);
+  }
+
+  urlDatabase[shortURL].longURL = longURL;
+  res.redirect("/urls");
+});
+
+// delete a particular shortURL-longURL pair
+app.post("/urls/:shortURL/delete", (req, res) => {
+  const currentUserId = req.cookies["user_id"];
+  const currentUser = users[currentUserId];
+  if (!currentUser) {
+    return res.send("Please log in");
+  }
+
+  const { shortURL } = req.params;
+  const templateVars = {
+    user: currentUser,
+    message: "You cannot delete a short URL that you did not create.",
+  };
+  if (!shortURLbelongsToUser(shortURL, currentUserId)) {
+    return res.render("error_page", templateVars);
+  }
+
+  delete urlDatabase[shortURL];
   res.redirect("/urls");
 });
 

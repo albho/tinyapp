@@ -23,16 +23,19 @@
         <p class="card-text">Created by: <%= authorEmail %></p>
       </div>
       <div class="card-footer text-muted">
-        <h5>Edit</h5>
+        <h5>Edit URL for <a href="/u/<%= shortURL %>"><%= shortURL %></a></h5>
+        <p>Old URL: <%= newURL.longURL %></p>
         <form action="/urls/<%= shortURL %>" method="POST">
-          <label for="longURL">New URL:</label>
-          <input
-            type="text"
-            id="longURL"
-            name="longURL"
-            placeholder="https://"
-          />
-          <button type="submit" class="btn btn-primary">Submit</button>
+          <div class="form-group">
+            <input
+              type="text"
+              name="longURL"
+              placeholder="https://"
+            />
+            <small class="form-text text-muted">Enter a new URL for <%= shortURL %></small>
+          </div>
+          <button type="submit" class="btn btn-primary">Update</button>
+          </div>
         </form>
       </div>
     </div>
