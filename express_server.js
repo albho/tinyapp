@@ -74,15 +74,16 @@ function shortURLbelongsToUser(shortURL, currentUser) {
 // ROUTE HANDLERS
 // home page displaying all shortURLS + longURLS
 app.get("/urls", (req, res) => {
-  const currentUser = users[req.cookies["user_id"]];
+  const currentUserId = req.cookies["user_id"];
+  const currentUser = users[currentUserId];
+  const currentUserUrls = urlsForUser(currentUserId);
   const templateVars = {
-    urls: urlsForUser(req.cookies["user_id"]),
+    urls: currentUserUrls,
     user: currentUser,
   };
 
   if (!currentUser) {
-    // temporary fix to get header to work
-    return res.render("redirect", { urls: null, user: null });
+    return res.render("redirect", templateVars);
   }
 
   res.render("urls_index", templateVars);
