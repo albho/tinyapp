@@ -1,7 +1,7 @@
-const userDatabase = require("../databases/userDatabase");
+const { userDatabase } = require("../databases/userDatabase");
 
 // check if an email exists (return user_id if true, else false)
-const findUserId = (email, password) => {
+function findUserId(email, password) {
   for (const user in userDatabase) {
     if (
       userDatabase[user].email === email &&
@@ -12,6 +12,6 @@ const findUserId = (email, password) => {
   }
 
   return false;
-};
+}
 
-module.exports = findUserId;
+module.exports = { findUserId };

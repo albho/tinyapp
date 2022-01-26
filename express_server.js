@@ -4,56 +4,21 @@ const PORT = 3000;
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 
-const urlDatabase = require("./databases/urlDatabase");
-const userDatabase = require("./databases/userDatabase");
-const findUserId = require("./helpers/findUserId");
+const { urlDatabase } = require("./databases/urlDatabase");
+const { userDatabase } = require("./databases/userDatabase");
+const { findUserId } = require("./helpers/findUserId");
+const { generateId } = require("./helpers/generateId");
+const { urlsForUser } = require("./helpers/urlsForUser");
+const {
+  ERROR_400,
+  ERROR_401,
+  ERROR_403,
+  ERROR_404,
+} = require("./helpers/errorMessages");
 
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
-
-// error messages
-const ERROR_400 = "Incorrect email or password.";
-const ERROR_401 = "Please log in to continue.";
-const ERROR_403 = "Error: Unauthorized.";
-const ERROR_404 = "Oops! Page not found.";
-
-// simulate generating a 'unique' id (for shortURLs and user ids)
-function generateId() {
-  const possibleChars =
-    "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const stringLength = 6;
-  let randomString = "";
-
-  for (let i = 0; i < stringLength; i++) {
-    let randomIndex = Math.floor(Math.random() * possibleChars.length);
-    randomString += possibleChars[randomIndex];
-  }
-
-  return randomString;
-}
-
-// returns URLs created by logged-in user
-function urlsForUser(id) {
-  const userURLs = {};
-
-  for (const url in urlDatabase) {
-    if (urlDatabase[url].userId === id) {
-      userURLs[url] = urlDatabase[url];
-    }
-  }
-
-  return userURLs;
-}
-
-// check if a short URL belongs to a user
-function shortURLbelongsToUser(shortURL, currentUserId) {
-  if (urlDatabase[shortURL] && urlDatabase[shortURL].userId === currentUserId) {
-    return true;
-  }
-
-  return false;
-}
 
 // ROUTE HANDLERS
 app.get("/", (req, res) => {
@@ -200,7 +165,7 @@ app.post("/register", (req, res) => {
     return res.status(400).render("error_page", templateVars);
   }
 
-  if (findUserId(email)) {
+  if (findUserId(email, password)) {
     templateVars.message = ERROR_400;
     return res.status(400).render("error_page", templateVars);
   }
