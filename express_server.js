@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const PORT = 8080;
+const PORT = 3000;
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 
@@ -56,6 +56,21 @@ function urlsForUser(id) {
   }
 
   return userURLs;
+}
+
+function shortURLbelongsToUser(shortURL, currentUser) {
+  console.log(urlDatabase[shortURL].userID);
+  console.log(currentUser);
+
+  if (
+    urlDatabase[shortURL] &&
+    currentUser &&
+    urlDatabase[shortURL].userID === currentUser.id
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 // ROUTE HANDLERS
@@ -116,7 +131,7 @@ app.get("/urls/:shortURL", (req, res) => {
   if (urlDatabase[shortURL].userID !== req.cookies["user_id"]) {
     return res.render("redirect", templateVars);
   }
-  
+
   res.render("urls_show", templateVars);
 });
 
@@ -130,8 +145,18 @@ app.get("/u/:shortURL", (req, res) => {
 
 // handle submission for updating a shortURL's longURL
 app.post("/urls/:shortURL", (req, res) => {
+  const currentUser = users[req.cookies["user_id"]];
   const { shortURL } = req.params;
   const { longURL } = req.body;
+
+  const templateVars = {
+    user: currentUser,
+    message: "You cannot edit a short URL that you did not create.",
+  };
+
+  if (!shortURLbelongsToUser(shortURL, currentUser)) {
+    return res.render("error_page", templateVars);
+  }
 
   urlDatabase[shortURL].longURL = longURL;
   res.redirect("/urls");
@@ -139,7 +164,16 @@ app.post("/urls/:shortURL", (req, res) => {
 
 // delete a particular shortURL-longURL pair
 app.post("/urls/:shortURL/delete", (req, res) => {
+  const currentUser = users[req.cookies["user_id"]];
   const { shortURL } = req.params;
+  const templateVars = {
+    user: currentUser,
+    message: "You cannot delete a short URL that you did not create.",
+  };
+
+  if (!shortURLbelongsToUser(shortURL, currentUser)) {
+    return res.render("error_page", templateVars);
+  }
 
   delete urlDatabase[shortURL];
   res.redirect("/urls");
