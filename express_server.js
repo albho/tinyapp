@@ -13,7 +13,7 @@ const urlDatabase = {};
 const users = {};
 
 // error messages
-const ERROR_400 = "Please enter a valid email and password";
+const ERROR_400 = "Incorrect email or password.";
 const ERROR_401 = "Please log in to continue.";
 const ERROR_403 = "Error: Unauthorized.";
 const ERROR_404 = "Oops! Page not found.";
@@ -34,9 +34,9 @@ function generateId() {
 }
 
 // check if an email exists (return user_id if true, else false)
-function findUserId(email) {
+function findUserId(email, password) {
   for (const user in users) {
-    if (users[user].email === email) {
+    if (users[user].email === email && users[user].password === password) {
       return user;
     }
   }
@@ -185,8 +185,8 @@ app.post("/login", (req, res) => {
     return res.status(400).render("error_page", templateVars);
   }
 
-  const userId = findUserId(email);
-  if (!userId || password !== users[userId].password) {
+  const userId = findUserId(email, password);
+  if (!userId) {
     templateVars.message = ERROR_400;
     return res.status(400).render("error_page", templateVars);
   }
