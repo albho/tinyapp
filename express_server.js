@@ -58,10 +58,8 @@ function urlsForUser(id) {
   return userURLs;
 }
 
+// check if a short URL belongs to a user
 function shortURLbelongsToUser(shortURL, currentUser) {
-  console.log(urlDatabase[shortURL].userID);
-  console.log(currentUser);
-
   if (
     urlDatabase[shortURL] &&
     currentUser &&
