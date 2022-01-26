@@ -19,15 +19,24 @@
   <body>
     <%- include('partials/_header') %>
     <main style="margin: 1em">
-      <div>
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+        "
+      >
         <h5><%= message %></h5>
-      </div>
-      <div>
-        Please
-        <a href="/login">Log In</a>
-        or
-        <a href="/register">Create an Account</a>
-        to continue.
+        <div>
+          <p>
+            Please
+            <a href="/login">Log In</a>
+            or
+            <a href="/register">Create an Account</a>
+            to continue.
+          </p>
+        </div>
       </div>
     </main>
     <!-- Bootstrap JS -->

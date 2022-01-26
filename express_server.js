@@ -16,7 +16,7 @@ const users = {};
 const ERROR_400 = "Please enter a valid email and password";
 const ERROR_401 = "Please log in to continue.";
 const ERROR_403 = "Error: Unauthorized.";
-const ERROR_404 = "Opps! Page not found.";
+const ERROR_404 = "Oops! Page not found.";
 
 // simulate generating a 'unique' id (for shortURLs and user ids)
 function generateId() {
