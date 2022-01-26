@@ -3,6 +3,7 @@ const app = express();
 const PORT = 3000;
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
+const bcrypt = require("bcryptjs");
 
 const { urlDatabase } = require("./databases/urlDatabase");
 const { userDatabase } = require("./databases/userDatabase");
@@ -171,7 +172,8 @@ app.post("/register", (req, res) => {
   }
 
   const id = generateId();
-  userDatabase[id] = { id, email, password };
+  const hashedPassword = bcrypt.hashSync(password, 10);
+  userDatabase[id] = { id, email, password: hashedPassword };
   res.cookie("user_id", id);
   res.redirect("/urls");
 });
