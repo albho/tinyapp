@@ -49,10 +49,22 @@ function findUserId(email) {
 // home page displaying all shortURLS + longURLS
 app.get("/urls", (req, res) => {
   const currentUser = users[req.cookies["user_id"]];
+  const userURLs = {};
   const templateVars = {
-    urls: urlDatabase,
+    urls: userURLs,
     user: currentUser,
   };
+
+  if (!currentUser) {
+    // temporary fix to get header to work
+    return res.render("redirect", { urls: null, user: null });
+  }
+
+  for (const url in urlDatabase) {
+    if (urlDatabase[url].userID === currentUser.id) {
+      userURLs[url] = urlDatabase[url];
+    }
+  }
 
   res.render("urls_index", templateVars);
 });
