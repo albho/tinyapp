@@ -59,11 +59,11 @@ function urlsForUser(id) {
 }
 
 // check if a short URL belongs to a user
-function shortURLbelongsToUser(shortURL, currentUser) {
+function shortURLbelongsToUser(shortURL, currentUserId) {
   if (
     urlDatabase[shortURL] &&
-    currentUser &&
-    urlDatabase[shortURL].userId === currentUser.id
+    currentUserId &&
+    urlDatabase[shortURL].userId === currentUserId
   ) {
     return true;
   }
@@ -107,28 +107,32 @@ app.post("/urls", (req, res) => {
   const currentUserId = req.cookies["user_id"];
   const currentUser = users[currentUserId];
   const shortURL = generateRandomString();
+  const { longURL } = req.body;
 
   if (!currentUser) {
     return res.status(403).send("Please log in to continue.");
   }
 
-  urlDatabase[shortURL] = { userId: currentUserId, longURL: req.body.longURL };
+  urlDatabase[shortURL] = { longURL, userId: currentUserId };
   res.redirect(`/urls/${shortURL}`);
 });
 
 // display the newly created shortURL
 app.get("/urls/:shortURL", (req, res) => {
-  const currentUser = users[req.cookies["user_id"]];
+  const currentUserId = req.cookies["user_id"];
+  const currentUser = users[currentUserId];
   const { shortURL } = req.params;
-  const authorEmail = users[urlDatabase[shortURL].userId].email;
+  const newURL = urlDatabase[shortURL];
+  const shortURLauthorId = urlDatabase[shortURL].userId;
+  const authorEmail = users[shortURLauthorId].email;
   const templateVars = {
     shortURL,
+    newURL,
     authorEmail,
-    newURL: urlDatabase[shortURL],
     user: currentUser,
   };
 
-  if (urlDatabase[shortURL].userId !== req.cookies["user_id"]) {
+  if (shortURLauthorId !== currentUserId) {
     return res.render("redirect", templateVars);
   }
 
@@ -145,7 +149,8 @@ app.get("/u/:shortURL", (req, res) => {
 
 // handle submission for updating a shortURL's longURL
 app.post("/urls/:shortURL", (req, res) => {
-  const currentUser = users[req.cookies["user_id"]];
+  const currentUserId = req.cookies["user_id"];
+  const currentUser = users[currentUserId];
   const { shortURL } = req.params;
   const { longURL } = req.body;
 
@@ -154,7 +159,7 @@ app.post("/urls/:shortURL", (req, res) => {
     message: "You cannot edit a short URL that you did not create.",
   };
 
-  if (!shortURLbelongsToUser(shortURL, currentUser)) {
+  if (!shortURLbelongsToUser(shortURL, currentUserId)) {
     return res.render("error_page", templateVars);
   }
 
@@ -164,14 +169,15 @@ app.post("/urls/:shortURL", (req, res) => {
 
 // delete a particular shortURL-longURL pair
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const currentUser = users[req.cookies["user_id"]];
+  const currentUserId = req.cookies["user_id"];
+  const currentUser = users[currentUserId];
   const { shortURL } = req.params;
   const templateVars = {
     user: currentUser,
     message: "You cannot delete a short URL that you did not create.",
   };
 
-  if (!shortURLbelongsToUser(shortURL, currentUser)) {
+  if (!shortURLbelongsToUser(shortURL, currentUserId)) {
     return res.render("error_page", templateVars);
   }
 
@@ -182,7 +188,8 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 // AUTHORIZATION & AUTHENTICATION
 // display login form
 app.get("/login", (req, res) => {
-  const currentUser = users[req.cookies["user_id"]];
+  const currentUserId = req.cookies["user_id"];
+  const currentUser = users[currentUserId];
   const templateVars = {
     user: currentUser,
   };
@@ -214,7 +221,8 @@ app.post("/logout", (req, res) => {
 
 // display registration form
 app.get("/register", (req, res) => {
-  const currentUser = users[req.cookies["user_id"]];
+  const currentUserId = req.cookies["user_id"];
+  const currentUser = users[currentUserId];
   const templateVars = { user: currentUser };
 
   res.render("register", templateVars);
