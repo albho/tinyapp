@@ -8,6 +8,12 @@ app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
+// error messages
+const ERROR_400 = "Please enter a valid email and password";
+const ERROR_401 = "Please log in to continue.";
+const ERROR_403 = "Error: Unauthorized.";
+const ERROR_404 = "Opps! Page not found.";
+
 // simulate databases
 const urlDatabase = {
   b2xVn2: { userId: "123xyz", longURL: "http://www.lighthouselabs.ca" },
@@ -118,21 +124,21 @@ app.get("/urls/:shortURL", (req, res) => {
   };
 
   if (!currentUser) {
-    templateVars.message = "Oops! You must be logged in to view short URLs.";
-    return res.render("auth_prompt", templateVars);
+    templateVars.message = ERROR_401;
+    return res.status(401).render("auth_prompt", templateVars);
   }
 
   const { shortURL } = req.params;
   const newURL = urlDatabase[shortURL];
   if (!newURL) {
-    templateVars.message = "Oops! URL not found.";
+    templateVars.message = ERROR_404;
     return res.status(404).render("error_page", templateVars);
   }
 
   const shortURLauthorId = urlDatabase[shortURL].userId;
   if (shortURLauthorId !== req.cookies["user_id"]) {
-    templateVars.message = "Oops! You did not create this short URL.";
-    return res.status(404).render("error_page", templateVars);
+    templateVars.message = ERROR_403;
+    return res.status(403).render("error_page", templateVars);
   }
 
   const authorEmail = users[shortURLauthorId].email;
@@ -150,13 +156,13 @@ app.get("/u/:shortURL", (req, res) => {
   };
 
   if (!currentUser) {
-    templateVars.message = "Oops! You must be logged in to use short URLs.";
-    return res.render("auth_prompt", templateVars);
+    templateVars.message = ERROR_401;
+    return res.status(401).render("auth_prompt", templateVars);
   }
 
   const { shortURL } = req.params;
   if (!urlDatabase[shortURL] || !urlDatabase[shortURL].longURL) {
-    templateVars.message = "Oops! URL not found.";
+    templateVars.message = ERROR_404;
     return res.status(404).render("error_page", templateVars);
   }
 
@@ -192,14 +198,14 @@ app.post("/login", (req, res) => {
   const templateVars = { user: null };
 
   if (!email || !password) {
-    templateVars.message = "Please enter an email and password.";
-    return res.status(403).render("error_page", templateVars);
+    templateVars.message = ERROR_400;
+    return res.status(400).render("error_page", templateVars);
   }
 
   const userId = findUserId(email);
   if (!userId || password !== users[userId].password) {
-    templateVars.message = "Incorrect email or password.";
-    return res.status(403).render("error_page", templateVars);
+    templateVars.message = ERROR_400;
+    return res.status(400).render("error_page", templateVars);
   }
 
   res.cookie("user_id", userId);
@@ -218,13 +224,13 @@ app.post("/register", (req, res) => {
   const templateVars = { user: null };
 
   if (!email || !password) {
-    templateVars.message = "Please enter an email and password.";
-    return res.status(403).render("error_page", templateVars);
+    templateVars.message = ERROR_400;
+    return res.status(400).render("error_page", templateVars);
   }
 
   if (findUserId(email)) {
-    templateVars.message = "Email already in use.";
-    return res.status(403).render("error_page", templateVars);
+    templateVars.message = ERROR_400;
+    return res.status(400).render("error_page", templateVars);
   }
 
   const id = generateId();
@@ -246,8 +252,8 @@ app.post("/urls", (req, res) => {
   };
 
   if (!currentUser) {
-    templateVars.message = "Oops! You are not logged in.";
-    return res.render("auth_prompt", templateVars);
+    templateVars.message = ERROR_401;
+    return res.status(401).render("auth_prompt", templateVars);
   }
 
   const shortURL = generateId();
@@ -262,15 +268,15 @@ app.post("/urls/:shortURL", (req, res) => {
   const templateVars = {
     user: currentUser,
   };
-  
+
   if (!currentUser) {
-    templateVars.message = "Oops! You are not logged in.";
-    return res.render("auth_prompt", templateVars);
+    templateVars.message = ERROR_401;
+    return res.status(401).render("auth_prompt", templateVars);
   }
 
   const { shortURL } = req.params;
   if (!shortURLbelongsToUser(shortURL, req.cookies["user_id"])) {
-    templateVars.message = "You cannot edit a URL that you did not create.";
+    templateVars.message = ERROR_403;
     return res.status(403).render("error_page", templateVars);
   }
 
@@ -287,13 +293,13 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   };
 
   if (!currentUser) {
-    templateVars.message = "Oops! You are not logged in.";
-    return res.render("auth_prompt", templateVars);
+    templateVars.message = ERROR_401;
+    return res.status(401).render("auth_prompt", templateVars);
   }
 
   const { shortURL } = req.params;
   if (!shortURLbelongsToUser(shortURL, req.cookies["user_id"])) {
-    templateVars.message = "You cannot delete a URL that you did not create.";
+    templateVars.message = ERROR_403;
     return res.status(403).render("error_page", templateVars);
   }
 
