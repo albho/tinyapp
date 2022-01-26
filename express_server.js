@@ -92,7 +92,7 @@ app.get("/urls", (req, res) => {
     user: currentUser,
   };
   if (!currentUser) {
-    return res.render("redirect", templateVars);
+    return res.render("auth_prompt", templateVars);
   }
 
   res.render("urls_index", templateVars);
