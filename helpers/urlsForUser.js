@@ -1,12 +1,10 @@
-const { urlDatabase } = require("../databases/urlDatabase");
-
 // returns URLs created by logged-in user
-function urlsForUser(id) {
+function urlsForUser(id, database) {
   const userURLs = {};
 
-  for (const url in urlDatabase) {
-    if (urlDatabase[url].userId === id) {
-      userURLs[url] = urlDatabase[url];
+  for (const url in database) {
+    if (database[url].userId === id) {
+      userURLs[url] = database[url];
     }
   }
 

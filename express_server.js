@@ -43,7 +43,7 @@ app.get("/", (req, res) => {
 // render home page - list all of a user's URLs
 app.get("/urls", (req, res) => {
   const currentUser = userDatabase[req.session.user_id];
-  const currentUserUrls = urlsForUser(req.session.user_id);
+  const currentUserUrls = urlsForUser(req.session.user_id, urlDatabase);
   const templateVars = { user: currentUser, urls: currentUserUrls };
 
   if (!currentUser) {
@@ -215,7 +215,7 @@ app.post("/urls/:shortURL", (req, res) => {
   }
 
   const { shortURL } = req.params;
-  if (!shortURLbelongsToUser(shortURL, req.session.user_id)) {
+  if (!shortURLbelongsToUser(shortURL, req.session.user_id, urlDatabase)) {
     templateVars.message = ERROR_403;
     return res.status(403).render("error_page", templateVars);
   }
@@ -236,7 +236,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   }
 
   const { shortURL } = req.params;
-  if (!shortURLbelongsToUser(shortURL, req.session.user_id)) {
+  if (!shortURLbelongsToUser(shortURL, req.session.user_id, urlDatabase)) {
     templateVars.message = ERROR_403;
     return res.status(403).render("error_page", templateVars);
   }
