@@ -10,8 +10,8 @@ app.set("view engine", "ejs");
 
 // simulate databases
 const urlDatabase = {
-  b2xVn2: { userID: "123xyz", longURL: "http://www.lighthouselabs.ca" },
-  "9sm5xK": { userID: "456asd", longURL: "http://www.google.com" },
+  b2xVn2: { userId: "123xyz", longURL: "http://www.lighthouselabs.ca" },
+  "9sm5xK": { userId: "456asd", longURL: "http://www.google.com" },
 };
 
 const users = {
@@ -50,7 +50,7 @@ function urlsForUser(id) {
   const userURLs = {};
 
   for (const url in urlDatabase) {
-    if (urlDatabase[url].userID === id) {
+    if (urlDatabase[url].userId === id) {
       userURLs[url] = urlDatabase[url];
     }
   }
@@ -63,7 +63,7 @@ function shortURLbelongsToUser(shortURL, currentUser) {
   if (
     urlDatabase[shortURL] &&
     currentUser &&
-    urlDatabase[shortURL].userID === currentUser.id
+    urlDatabase[shortURL].userId === currentUser.id
   ) {
     return true;
   }
@@ -91,7 +91,8 @@ app.get("/urls", (req, res) => {
 
 // display form for creating a new shortURL
 app.get("/urls/new", (req, res) => {
-  const currentUser = users[req.cookies["user_id"]];
+  const currentUserId = req.cookies["user_id"];
+  const currentUser = users[currentUserId];
   const templateVars = { user: currentUser };
 
   if (!currentUser) {
@@ -111,7 +112,7 @@ app.post("/urls", (req, res) => {
     return res.status(403).send("Please log in to continue.");
   }
 
-  urlDatabase[shortURL] = { userID: currentUserId, longURL: req.body.longURL };
+  urlDatabase[shortURL] = { userId: currentUserId, longURL: req.body.longURL };
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -119,7 +120,7 @@ app.post("/urls", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const currentUser = users[req.cookies["user_id"]];
   const { shortURL } = req.params;
-  const authorEmail = users[urlDatabase[shortURL].userID].email;
+  const authorEmail = users[urlDatabase[shortURL].userId].email;
   const templateVars = {
     shortURL,
     authorEmail,
@@ -127,7 +128,7 @@ app.get("/urls/:shortURL", (req, res) => {
     user: currentUser,
   };
 
-  if (urlDatabase[shortURL].userID !== req.cookies["user_id"]) {
+  if (urlDatabase[shortURL].userId !== req.cookies["user_id"]) {
     return res.render("redirect", templateVars);
   }
 
