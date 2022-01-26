@@ -20,7 +20,7 @@ const users = {
 };
 
 // simulate generating a 'unique' shortURL
-function generateRandomString() {
+function generateId() {
   const possibleChars =
     "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const stringLength = 6;
@@ -74,6 +74,7 @@ function shortURLbelongsToUser(shortURL, currentUserId) {
 // ROUTE HANDLERS
 app.get("/", (req, res) => {
   const currentUser = users[req.cookies["user_id"]];
+
   if (currentUser) {
     return res.redirect("/urls");
   }
@@ -81,13 +82,13 @@ app.get("/", (req, res) => {
   res.redirect("/login");
 });
 
-// home page displaying all shortURLS + longURLS
+// home page displaying all of a user's URLs
 app.get("/urls", (req, res) => {
   const currentUser = users[req.cookies["user_id"]];
   const currentUserUrls = urlsForUser(req.cookies["user_id"]);
   const templateVars = {
-    urls: currentUserUrls,
     user: currentUser,
+    urls: currentUserUrls,
   };
 
   if (!currentUser) {
@@ -115,6 +116,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     user: currentUser,
   };
+
   if (!currentUser) {
     templateVars.message = "Oops! You must be logged in to view short URLs.";
     return res.render("auth_prompt", templateVars);
@@ -146,6 +148,7 @@ app.get("/u/:shortURL", (req, res) => {
   const templateVars = {
     user: currentUser,
   };
+
   if (!currentUser) {
     templateVars.message = "Oops! You must be logged in to use short URLs.";
     return res.render("auth_prompt", templateVars);
@@ -153,7 +156,7 @@ app.get("/u/:shortURL", (req, res) => {
 
   const { shortURL } = req.params;
   if (!urlDatabase[shortURL] || !urlDatabase[shortURL].longURL) {
-    templateVars.message = "Oops! Page not found.";
+    templateVars.message = "Oops! URL not found.";
     return res.status(404).render("error_page", templateVars);
   }
 
@@ -168,10 +171,7 @@ app.get("/login", (req, res) => {
     return res.redirect("/urls");
   }
 
-  const templateVars = {
-    user: currentUser,
-  };
-
+  const templateVars = { user: currentUser };
   res.render("login", templateVars);
 });
 
@@ -227,7 +227,7 @@ app.post("/register", (req, res) => {
     return res.status(403).render("error_page", templateVars);
   }
 
-  const id = generateRandomString();
+  const id = generateId();
   users[id] = {
     id,
     email,
@@ -244,12 +244,13 @@ app.post("/urls", (req, res) => {
   const templateVars = {
     user: currentUser,
   };
+
   if (!currentUser) {
     templateVars.message = "Oops! You are not logged in.";
     return res.render("auth_prompt", templateVars);
   }
 
-  const shortURL = generateRandomString();
+  const shortURL = generateId();
   const { longURL } = req.body;
   urlDatabase[shortURL] = { longURL, userId: req.cookies["user_id"] };
   res.redirect(`/urls/${shortURL}`);
@@ -261,18 +262,19 @@ app.post("/urls/:shortURL", (req, res) => {
   const templateVars = {
     user: currentUser,
   };
+  
   if (!currentUser) {
     templateVars.message = "Oops! You are not logged in.";
     return res.render("auth_prompt", templateVars);
   }
 
   const { shortURL } = req.params;
-  const { longURL } = req.body;
   if (!shortURLbelongsToUser(shortURL, req.cookies["user_id"])) {
     templateVars.message = "You cannot edit a URL that you did not create.";
     return res.status(403).render("error_page", templateVars);
   }
 
+  const { longURL } = req.body;
   urlDatabase[shortURL].longURL = longURL;
   res.redirect("/urls");
 });
