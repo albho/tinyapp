@@ -45,25 +45,31 @@ function findUserId(email) {
   return false;
 }
 
+// returns URLs created by logged-in user
+function urlsForUser(id) {
+  const userURLs = {};
+
+  for (const url in urlDatabase) {
+    if (urlDatabase[url].userID === id) {
+      userURLs[url] = urlDatabase[url];
+    }
+  }
+
+  return userURLs;
+}
+
 // ROUTE HANDLERS
 // home page displaying all shortURLS + longURLS
 app.get("/urls", (req, res) => {
   const currentUser = users[req.cookies["user_id"]];
-  const userURLs = {};
   const templateVars = {
-    urls: userURLs,
+    urls: urlsForUser(req.cookies["user_id"]),
     user: currentUser,
   };
 
   if (!currentUser) {
     // temporary fix to get header to work
     return res.render("redirect", { urls: null, user: null });
-  }
-
-  for (const url in urlDatabase) {
-    if (urlDatabase[url].userID === currentUser.id) {
-      userURLs[url] = urlDatabase[url];
-    }
   }
 
   res.render("urls_index", templateVars);
@@ -107,6 +113,10 @@ app.get("/urls/:shortURL", (req, res) => {
     user: currentUser,
   };
 
+  if (urlDatabase[shortURL].userID !== req.cookies["user_id"]) {
+    return res.render("redirect", templateVars);
+  }
+  
   res.render("urls_show", templateVars);
 });
 
