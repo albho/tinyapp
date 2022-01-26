@@ -69,6 +69,7 @@ function shortURLbelongsToUser(shortURL, currentUserId) {
 // ROUTE HANDLERS
 app.get("/", (req, res) => {
   const currentUser = users[req.cookies["user_id"]];
+
   if (currentUser) {
     return res.redirect("/urls");
   }
@@ -76,14 +77,11 @@ app.get("/", (req, res) => {
   res.redirect("/login");
 });
 
-// home page displaying all of a user's URLs
+// render home page - list all of a user's URLs
 app.get("/urls", (req, res) => {
   const currentUser = users[req.cookies["user_id"]];
   const currentUserUrls = urlsForUser(req.cookies["user_id"]);
-  const templateVars = {
-    user: currentUser,
-    urls: currentUserUrls,
-  };
+  const templateVars = { user: currentUser, urls: currentUserUrls };
 
   if (!currentUser) {
     templateVars.message = "Welcome to TinyApp!";
@@ -93,9 +91,10 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-// display form for creating a new shortURL
+// render page for creating a new shortURL
 app.get("/urls/new", (req, res) => {
   const currentUser = users[req.cookies["user_id"]];
+
   if (!currentUser) {
     return res.redirect("/login");
   }
@@ -104,7 +103,7 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-// display the newly created shortURL
+// render the newly created shortURL
 app.get("/urls/:shortURL", (req, res) => {
   const currentUser = users[req.cookies["user_id"]];
   const templateVars = { user: currentUser };
@@ -152,9 +151,10 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
-// display login form
+// login page
 app.get("/login", (req, res) => {
   const currentUser = users[req.cookies["user_id"]];
+
   if (currentUser) {
     return res.redirect("/urls");
   }
@@ -163,9 +163,10 @@ app.get("/login", (req, res) => {
   res.render("login", templateVars);
 });
 
-// display registration form
+// registration page
 app.get("/register", (req, res) => {
   const currentUser = users[req.cookies["user_id"]];
+
   if (currentUser) {
     return res.redirect("/urls");
   }
@@ -174,7 +175,7 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars);
 });
 
-// handle login submission
+// log user in
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
   const templateVars = { user: null };
@@ -194,13 +195,13 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 
-// handle logout
+// log user out
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
   res.redirect("/urls");
 });
 
-// handle registration
+// register new user
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
   const templateVars = { user: null };
@@ -215,15 +216,13 @@ app.post("/register", (req, res) => {
     return res.status(400).render("error_page", templateVars);
   }
 
-  // create new user and store info in simulated DB
   const id = generateId();
   users[id] = { id, email, password };
   res.cookie("user_id", id);
-
   res.redirect("/urls");
 });
 
-// handle form submission for creating a new shortURL
+// create a new shortURL
 app.post("/urls", (req, res) => {
   const currentUser = users[req.cookies["user_id"]];
   const templateVars = { user: null };
@@ -233,15 +232,13 @@ app.post("/urls", (req, res) => {
     return res.status(401).render("auth_prompt", templateVars);
   }
 
-  // create and store new shortURL in simulated DB
   const shortURL = generateId();
   const { longURL } = req.body;
   urlDatabase[shortURL] = { longURL, userId: req.cookies["user_id"] };
-
   res.redirect(`/urls/${shortURL}`);
 });
 
-// handle submission for updating a shortURL's longURL
+// update a shortURL's longURL
 app.post("/urls/:shortURL", (req, res) => {
   const currentUser = users[req.cookies["user_id"]];
   const templateVars = { user: currentUser };
@@ -257,14 +254,12 @@ app.post("/urls/:shortURL", (req, res) => {
     return res.status(403).render("error_page", templateVars);
   }
 
-  // update shortURL in simulated DB
   const { longURL } = req.body;
   urlDatabase[shortURL].longURL = longURL;
-
   res.redirect("/urls");
 });
 
-// delete a particular shortURL-longURL pair
+// delete a particular shortURL
 app.post("/urls/:shortURL/delete", (req, res) => {
   const currentUser = users[req.cookies["user_id"]];
   const templateVars = { user: currentUser };
@@ -281,11 +276,16 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   }
 
   delete urlDatabase[shortURL];
-
   res.redirect("/urls");
 });
 
-//
+// error handling
+app.get("*", (req, res) => {
+  const templateVars = { user: null, message: ERROR_404 };
+  return res.status(404).render("error_page", templateVars);
+});
+
+// start server
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
