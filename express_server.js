@@ -7,10 +7,13 @@ const bcrypt = require("bcryptjs");
 
 const { urlDatabase } = require("./databases/urlDatabase");
 const { userDatabase } = require("./databases/userDatabase");
-const { findUserByEmail } = require("./helpers/findUserByEmail");
+const { utilities } = require("./helpers/utilities");
+const { getUserId, belongsToUser, getUserByEmail, urlsForUser } = utilities(
+  urlDatabase,
+  userDatabase
+);
+
 const { generateId } = require("./helpers/generateId");
-const { belongsToUser } = require("./helpers/belongsToUser");
-const { urlsForUser } = require("./helpers/urlsForUser");
 const { redirectUser, redirectError } = require("./helpers/resRedirects");
 const {
   ERROR_MSG_EMPTY_FIELD,
@@ -44,7 +47,7 @@ app.get("/", (req, res) => {
 // render home page - list all of a user's URLs
 app.get("/urls", (req, res) => {
   const currentUser = userDatabase[req.session.user_id];
-  const currentUserUrls = urlsForUser(req.session.user_id, urlDatabase);
+  const currentUserUrls = urlsForUser(req.session.user_id);
   const templateVars = { user: currentUser, urls: currentUserUrls };
 
   if (!currentUser) {
@@ -142,7 +145,7 @@ app.post("/login", (req, res) => {
     return redirectError(templateVars, res, 400, ERROR_MSG_EMPTY_FIELD);
   }
 
-  const userId = findUserByEmail(email, password, userDatabase);
+  const userId = getUserId(email, password);
   if (!userId) {
     return redirectError(templateVars, res, 400, ERROR_MSG_INCORRECT_AUTH);
   }
@@ -167,7 +170,7 @@ app.post("/register", (req, res) => {
     return redirectError(templateVars, res, 400, ERROR_MSG_EMPTY_FIELD);
   }
 
-  if (findUserByEmail(email, password, userDatabase)) {
+  if (getUserByEmail(email)) {
     return redirectError(templateVars, res, 400, ERROR_MSG_EMAIL_EXISTS);
   }
 
@@ -206,7 +209,7 @@ app.post("/urls/:shortURL", (req, res) => {
 
   // restrict user from updating a shortURL that they did not create
   const { shortURL } = req.params;
-  if (!belongsToUser(shortURL, req.session.user_id, urlDatabase)) {
+  if (!belongsToUser(shortURL, req.session.user_id)) {
     return redirectError(templateVars, res, 403, ERROR_MSG_NOT_AUTHORIZED);
   }
 
@@ -226,7 +229,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
   // restrict user from deleting a shortURL that they did not create
   const { shortURL } = req.params;
-  if (!belongsToUser(shortURL, req.session.user_id, urlDatabase)) {
+  if (!belongsToUser(shortURL, req.session.user_id)) {
     return redirectError(templateVars, res, 403, ERROR_MSG_NOT_AUTHORIZED);
   }
 
