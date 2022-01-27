@@ -1,5 +1,5 @@
-const redirectUser = (templateVars, res, errMsg) => {
-  templateVars.message = errMsg;
+const redirectUser = (templateVars, res) => {
+  templateVars.message = "Error: You are not logged in.";
   return res.status(401).render("auth_prompt", templateVars);
 };
 

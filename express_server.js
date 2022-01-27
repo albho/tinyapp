@@ -11,12 +11,11 @@ const { findUserByEmail } = require("./helpers/findUserByEmail");
 const { generateId } = require("./helpers/generateId");
 const { belongsToUser } = require("./helpers/belongsToUser");
 const { urlsForUser } = require("./helpers/urlsForUser");
-const { redirectUser, redirectError } = require("./helpers/redirect");
+const { redirectUser, redirectError } = require("./helpers/resRedirects");
 const {
   ERROR_MSG_EMPTY_FIELD,
   ERROR_MSG_INCORRECT_AUTH,
   ERROR_MSG_EMAIL_EXISTS,
-  ERROR_MSG_NOT_AUTHENTICATED,
   ERROR_MSG_NOT_AUTHORIZED,
   ERROR_MSG_NOT_FOUND,
 } = require("./helpers/errorMessages");
@@ -74,7 +73,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { user: currentUser };
 
   if (!currentUser) {
-    return redirectUser(templateVars, res, ERROR_MSG_NOT_AUTHENTICATED);
+    return redirectUser(templateVars, res);
   }
 
   // if shortURL does not exist, render error page
@@ -186,7 +185,7 @@ app.post("/urls", (req, res) => {
   const templateVars = { user: null };
 
   if (!currentUser) {
-    return redirectUser(templateVars, res, ERROR_MSG_NOT_AUTHENTICATED);
+    return redirectUser(templateVars, res);
   }
 
   // create new shortURL
@@ -202,7 +201,7 @@ app.post("/urls/:shortURL", (req, res) => {
   const templateVars = { user: currentUser };
 
   if (!currentUser) {
-    return redirectUser(templateVars, res, ERROR_MSG_NOT_AUTHENTICATED);
+    return redirectUser(templateVars, res);
   }
 
   // restrict user from updating a shortURL that they did not create
@@ -222,7 +221,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   const templateVars = { user: currentUser };
 
   if (!currentUser) {
-    return redirectUser(templateVars, res, ERROR_MSG_NOT_AUTHENTICATED);
+    return redirectUser(templateVars, res);
   }
 
   // restrict user from deleting a shortURL that they did not create
