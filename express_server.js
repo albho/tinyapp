@@ -248,9 +248,8 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 // error handling
 app.get("*", (req, res) => {
   const currentUser = userDatabase[req.session.user_id];
-  const templateVars = { user: currentUser, message: ERROR_MSG_NOT_FOUND };
-
-  return res.status(404).render("error_page", templateVars);
+  const templateVars = { user: currentUser };
+  return redirectError(templateVars, res, 404, ERROR_MSG_NOT_FOUND);
 });
 
 // start server
