@@ -4,9 +4,11 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product
 
-!["screenshot description"](#)
+!["screenshot description"](https://github.com/albho/tinyapp/blob/main/docs/tinyapp-new.png?raw=true)
 
-!["screenshot description"](#)
+!["screenshot description"](https://github.com/albho/tinyapp/blob/main/docs/tinyapp-show.png?raw=true)
+
+!["screenshot description"](https://github.com/albho/tinyapp/blob/main/docs/tinyapp-urls.png?raw=true)
 
 ## Dependencies
 
