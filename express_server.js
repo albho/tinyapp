@@ -39,7 +39,7 @@ app.get("/", (req, res) => {
     return res.redirect("/login");
   }
 
-  res.redirect("/urls");
+  return res.redirect("/urls");
 });
 
 // render home page - list all of a user's URLs
@@ -53,7 +53,7 @@ app.get("/urls", (req, res) => {
     return res.render("auth_prompt", templateVars);
   }
 
-  res.render("urls_index", templateVars);
+  return res.render("urls_index", templateVars);
 });
 
 // render page for creating a new shortURL
@@ -65,7 +65,7 @@ app.get("/urls/new", (req, res) => {
   }
 
   const templateVars = { user: currentUser };
-  res.render("urls_new", templateVars);
+  return res.render("urls_new", templateVars);
 });
 
 // render the newly created shortURL
@@ -92,7 +92,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
   const authorEmail = userDatabase[shortURLauthorId].email;
   const newTemplateVars = { ...templateVars, shortURL, newURL, authorEmail };
-  res.render("urls_show", newTemplateVars);
+  return res.render("urls_show", newTemplateVars);
 });
 
 // redirect to longURL after clicking on a shortURL
@@ -107,7 +107,7 @@ app.get("/u/:shortURL", (req, res) => {
   }
 
   const longURL = urlDatabase[shortURL].longURL;
-  res.redirect(longURL);
+  return res.redirect(longURL);
 });
 
 // login page
@@ -119,7 +119,7 @@ app.get("/login", (req, res) => {
   }
 
   const templateVars = { user: currentUser };
-  res.render("login", templateVars);
+  return res.render("login", templateVars);
 });
 
 // registration page
@@ -131,7 +131,7 @@ app.get("/register", (req, res) => {
   }
 
   const templateVars = { user: currentUser };
-  res.render("register", templateVars);
+  return res.render("register", templateVars);
 });
 
 // log user in
@@ -149,14 +149,14 @@ app.post("/login", (req, res) => {
   }
 
   req.session.user_id = userId;
-  res.redirect("/urls");
+  return res.redirect("/urls");
 });
 
 // log user out
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
   res.clearCookie("user_id.sig");
-  res.redirect("/urls");
+  return res.redirect("/urls");
 });
 
 // register new user
@@ -177,7 +177,7 @@ app.post("/register", (req, res) => {
   const hashedPassword = bcrypt.hashSync(password, 10);
   userDatabase[userId] = { email, id: userId, password: hashedPassword };
   req.session.user_id = userId;
-  res.redirect("/urls");
+  return res.redirect("/urls");
 });
 
 // create a new shortURL
@@ -193,7 +193,7 @@ app.post("/urls", (req, res) => {
   const shortURL = generateId();
   const { longURL } = req.body;
   urlDatabase[shortURL] = { longURL, userId: req.session.user_id };
-  res.redirect(`/urls/${shortURL}`);
+  return res.redirect(`/urls/${shortURL}`);
 });
 
 // update a shortURL's longURL
@@ -213,7 +213,7 @@ app.post("/urls/:shortURL", (req, res) => {
 
   const { longURL } = req.body;
   urlDatabase[shortURL].longURL = longURL;
-  res.redirect("/urls");
+  return res.redirect("/urls");
 });
 
 // delete a particular shortURL
@@ -232,7 +232,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   }
 
   delete urlDatabase[shortURL];
-  res.redirect("/urls");
+  return res.redirect("/urls");
 });
 
 // error handling
