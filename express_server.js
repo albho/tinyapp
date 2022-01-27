@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const PORT = 3000;
+const PORT = 8080;
 const cookieSession = require("cookie-session");
 const bodyParser = require("body-parser");
 const bcrypt = require("bcryptjs");
@@ -31,8 +31,7 @@ app.use(
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
-// ROUTE HANDLERS
-// home page - will redirect to other pages based on auth status
+// home page
 app.get("/", (req, res) => {
   const currentUser = userDatabase[req.session.user_id];
 
@@ -253,5 +252,5 @@ app.get("*", (req, res) => {
 
 // start server
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  console.log(`TinyApp listening on port ${PORT}!`);
 });
