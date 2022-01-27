@@ -11,6 +11,7 @@ const { findUserByEmail } = require("./helpers/findUserByEmail");
 const { generateId } = require("./helpers/generateId");
 const { belongsToUser } = require("./helpers/belongsToUser");
 const { urlsForUser } = require("./helpers/urlsForUser");
+const { redirectUser, redirectError } = require("./helpers/redirect");
 const {
   ERROR_400a,
   ERROR_400b,
@@ -29,11 +30,6 @@ app.use(
 );
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
-
-const redirectUser = (tv, res) => {
-  tv.message = ERROR_401;
-  return res.status(401).render("auth_prompt", tv);
-};
 
 // ROUTE HANDLERS
 // home page - will redirect to other pages based on auth status
@@ -79,22 +75,20 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { user: currentUser };
 
   if (!currentUser) {
-    return redirectUser(templateVars, res);
+    return redirectUser(templateVars, res, ERROR_401);
   }
 
   // if shortURL does not exist, render error page
   const { shortURL } = req.params;
   const newURL = urlDatabase[shortURL];
   if (!newURL) {
-    templateVars.message = ERROR_404;
-    return res.status(404).render("error_page", templateVars);
+    return redirectError(templateVars, res, 404, ERROR_404);
   }
 
   // if shortURL was not created by the current user, render error page
   const shortURLauthorId = urlDatabase[shortURL].userId;
   if (shortURLauthorId !== req.session.user_id) {
-    templateVars.message = ERROR_403;
-    return res.status(403).render("error_page", templateVars);
+    return redirectError(templateVars, res, 403, ERROR_403);
   }
 
   const authorEmail = userDatabase[shortURLauthorId].email;
@@ -108,21 +102,19 @@ app.get("/u/:shortURL", (req, res) => {
   const templateVars = { user: currentUser };
 
   if (!currentUser) {
-    return redirectUser(templateVars, res);
+    return redirectUser(templateVars, res, ERROR_401);
   }
 
   // if requested shortURL (or longURL) does not exist in db, render error page
   const { shortURL } = req.params;
   if (!urlDatabase[shortURL] || !urlDatabase[shortURL].longURL) {
-    templateVars.message = ERROR_404;
-    return res.status(404).render("error_page", templateVars);
+    return redirectError(templateVars, res, 404, ERROR_404);
   }
 
   // if shortURL was not created by the current user, render error page
   const shortURLauthorId = urlDatabase[shortURL].userId;
   if (shortURLauthorId !== req.session.user_id) {
-    templateVars.message = ERROR_403;
-    return res.status(403).render("error_page", templateVars);
+    return redirectError(templateVars, res, 403, ERROR_403);
   }
 
   const longURL = urlDatabase[shortURL].longURL;
@@ -159,14 +151,12 @@ app.post("/login", (req, res) => {
   const templateVars = { user: null };
 
   if (!email || !password) {
-    templateVars.message = ERROR_400a;
-    return res.status(400).render("error_page", templateVars);
+    return redirectError(templateVars, res, ERROR_400c, ERROR_400a);
   }
 
   const userId = findUserByEmail(email, password, userDatabase);
   if (!userId) {
-    templateVars.message = ERROR_400b;
-    return res.status(400).render("error_page", templateVars);
+    return redirectError(templateVars, res, 400, ERROR_400b);
   }
 
   req.session.user_id = userId;
@@ -185,13 +175,11 @@ app.post("/register", (req, res) => {
   const templateVars = { user: null };
 
   if (!email || !password) {
-    templateVars.message = ERROR_400a;
-    return res.status(400).render("error_page", templateVars);
+    return redirectError(templateVars, res, ERROR_400c, ERROR_400a);
   }
 
   if (findUserByEmail(email, password, userDatabase)) {
-    templateVars.message = ERROR_400c;
-    return res.status(400).render("error_page", templateVars);
+    return redirectError(templateVars, res, 400, ERROR_400c);
   }
 
   // create new user
@@ -208,7 +196,7 @@ app.post("/urls", (req, res) => {
   const templateVars = { user: null };
 
   if (!currentUser) {
-    return redirectUser(templateVars, res);
+    return redirectUser(templateVars, res, ERROR_401);
   }
 
   // create new shortURL
@@ -224,14 +212,13 @@ app.post("/urls/:shortURL", (req, res) => {
   const templateVars = { user: currentUser };
 
   if (!currentUser) {
-    return redirectUser(templateVars, res);
+    return redirectUser(templateVars, res, ERROR_401);
   }
 
   // restrict user from updating a shortURL that they did not create
   const { shortURL } = req.params;
   if (!belongsToUser(shortURL, req.session.user_id, urlDatabase)) {
-    templateVars.message = ERROR_403;
-    return res.status(403).render("error_page", templateVars);
+    return redirectError(templateVars, res, 403, ERROR_403);
   }
 
   const { longURL } = req.body;
@@ -245,14 +232,13 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   const templateVars = { user: currentUser };
 
   if (!currentUser) {
-    return redirectUser(templateVars, res);
+    return redirectUser(templateVars, res, ERROR_401);
   }
 
   // restrict user from deleting a shortURL that they did not create
   const { shortURL } = req.params;
   if (!belongsToUser(shortURL, req.session.user_id, urlDatabase)) {
-    templateVars.message = ERROR_403;
-    return res.status(403).render("error_page", templateVars);
+    return redirectError(templateVars, res, 403, ERROR_403);
   }
 
   delete urlDatabase[shortURL];
