@@ -4,6 +4,7 @@ const PORT = 8080;
 const cookieSession = require("cookie-session");
 const bodyParser = require("body-parser");
 const bcrypt = require("bcryptjs");
+const methodOverride = require("method-override");
 
 const { urlDatabase } = require("./databases/urlDatabase");
 const { userDatabase } = require("./databases/userDatabase");
@@ -32,6 +33,7 @@ app.use(
 );
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
+app.use(methodOverride("_method"));
 
 // home page
 app.get("/", (req, res) => {
@@ -199,7 +201,7 @@ app.post("/urls", (req, res) => {
 });
 
 // update a shortURL's longURL
-app.post("/urls/:shortURL", (req, res) => {
+app.put("/urls/:shortURL", (req, res) => {
   const currentUser = userDatabase[req.session.user_id];
   const templateVars = { user: currentUser };
 
@@ -219,7 +221,7 @@ app.post("/urls/:shortURL", (req, res) => {
 });
 
 // delete a particular shortURL
-app.post("/urls/:shortURL/delete", (req, res) => {
+app.delete("/urls/:shortURL/delete", (req, res) => {
   const currentUser = userDatabase[req.session.user_id];
   const templateVars = { user: currentUser };
 
