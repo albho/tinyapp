@@ -151,7 +151,7 @@ app.post("/login", (req, res) => {
   const templateVars = { user: null };
 
   if (!email || !password) {
-    return redirectError(templateVars, res, ERROR_400c, ERROR_400a);
+    return redirectError(templateVars, res, 400, ERROR_400a);
   }
 
   const userId = findUserByEmail(email, password, userDatabase);
@@ -175,7 +175,7 @@ app.post("/register", (req, res) => {
   const templateVars = { user: null };
 
   if (!email || !password) {
-    return redirectError(templateVars, res, ERROR_400c, ERROR_400a);
+    return redirectError(templateVars, res, 400, ERROR_400a);
   }
 
   if (findUserByEmail(email, password, userDatabase)) {
