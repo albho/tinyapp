@@ -100,20 +100,10 @@ app.get("/u/:shortURL", (req, res) => {
   const currentUser = userDatabase[req.session.user_id];
   const templateVars = { user: currentUser };
 
-  if (!currentUser) {
-    return redirectUser(templateVars, res, ERROR_MSG_NOT_AUTHENTICATED);
-  }
-
   // if requested shortURL (or longURL) does not exist in db, render error page
   const { shortURL } = req.params;
   if (!urlDatabase[shortURL] || !urlDatabase[shortURL].longURL) {
     return redirectError(templateVars, res, 404, ERROR_MSG_NOT_FOUND);
-  }
-
-  // if shortURL was not created by the current user, render error page
-  const shortURLauthorId = urlDatabase[shortURL].userId;
-  if (shortURLauthorId !== req.session.user_id) {
-    return redirectError(templateVars, res, 403, ERROR_MSG_NOT_AUTHORIZED);
   }
 
   const longURL = urlDatabase[shortURL].longURL;
