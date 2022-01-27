@@ -165,6 +165,7 @@ app.post("/login", (req, res) => {
 // log user out
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
+  res.clearCookie("user_id.sig");
   res.redirect("/urls");
 });
 
@@ -246,8 +247,10 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 // error handling
 app.get("*", (req, res) => {
-  const templateVars = { user: null, message: ERROR_MSG_NOT_FOUND };
-  return res.status(404).render("error_MSGe", templateVars);
+  const currentUser = userDatabase[req.session.user_id];
+  const templateVars = { user: currentUser, message: ERROR_MSG_NOT_FOUND };
+
+  return res.status(404).render("error_page", templateVars);
 });
 
 // start server
