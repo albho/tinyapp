@@ -26,7 +26,7 @@ const {
 app.use(
   cookieSession({
     name: "user_id",
-    keys: ["terrible_secret"],
+    keys: ["terrible_secret", "another_bad_secret"],
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
   })
 );
