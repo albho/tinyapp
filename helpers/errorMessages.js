@@ -1,15 +1,15 @@
-const ERROR_400a = "Error: Email and password fields cannot be empty.";
-const ERROR_400b = "Error: Incorrect email or password.";
-const ERROR_400c = "Error: Email already exists.";
-const ERROR_401 = "Error: You are not logged in.";
-const ERROR_403 = "Error: You are not authorized to perform this action.";
-const ERROR_404 = "Oops! Page not found.";
+const ERROR_MSG_EMPTY_FIELD = "Error: Email and password fields cannot be empty.";
+const ERROR_MSG_INCORRECT_AUTH = "Error: Incorrect email or password.";
+const ERROR_MSG_EMAIL_EXISTS = "Error: Email already exists.";
+const ERROR_MSG_NOT_AUTHENTICATED = "Error: You are not logged in.";
+const ERROR_MSG_NOT_AUTHORIZED = "Error: You are not authorized to perform this action.";
+const ERROR_MSG_NOT_FOUND = "Oops! Page not found.";
 
 module.exports = {
-  ERROR_400a,
-  ERROR_400b,
-  ERROR_400c,
-  ERROR_401,
-  ERROR_403,
-  ERROR_404,
+  ERROR_MSG_EMPTY_FIELD,
+  ERROR_MSG_INCORRECT_AUTH,
+  ERROR_MSG_EMAIL_EXISTS,
+  ERROR_MSG_NOT_AUTHENTICATED,
+  ERROR_MSG_NOT_AUTHORIZED,
+  ERROR_MSG_NOT_FOUND,
 };

@@ -13,12 +13,12 @@ const { belongsToUser } = require("./helpers/belongsToUser");
 const { urlsForUser } = require("./helpers/urlsForUser");
 const { redirectUser, redirectError } = require("./helpers/redirect");
 const {
-  ERROR_400a,
-  ERROR_400b,
-  ERROR_400c,
-  ERROR_401,
-  ERROR_403,
-  ERROR_404,
+  ERROR_MSG_EMPTY_FIELD,
+  ERROR_MSG_INCORRECT_AUTH,
+  ERROR_MSG_EMAIL_EXISTS,
+  ERROR_MSG_NOT_AUTHENTICATED,
+  ERROR_MSG_NOT_AUTHORIZED,
+  ERROR_MSG_NOT_FOUND,
 } = require("./helpers/errorMessages");
 
 app.use(
@@ -75,20 +75,20 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { user: currentUser };
 
   if (!currentUser) {
-    return redirectUser(templateVars, res, ERROR_401);
+    return redirectUser(templateVars, res, ERROR_MSG_NOT_AUTHENTICATED);
   }
 
   // if shortURL does not exist, render error page
   const { shortURL } = req.params;
   const newURL = urlDatabase[shortURL];
   if (!newURL) {
-    return redirectError(templateVars, res, 404, ERROR_404);
+    return redirectError(templateVars, res, 404, ERROR_MSG_NOT_FOUND);
   }
 
   // if shortURL was not created by the current user, render error page
   const shortURLauthorId = urlDatabase[shortURL].userId;
   if (shortURLauthorId !== req.session.user_id) {
-    return redirectError(templateVars, res, 403, ERROR_403);
+    return redirectError(templateVars, res, 403, ERROR_MSG_NOT_AUTHORIZED);
   }
 
   const authorEmail = userDatabase[shortURLauthorId].email;
@@ -102,19 +102,19 @@ app.get("/u/:shortURL", (req, res) => {
   const templateVars = { user: currentUser };
 
   if (!currentUser) {
-    return redirectUser(templateVars, res, ERROR_401);
+    return redirectUser(templateVars, res, ERROR_MSG_NOT_AUTHENTICATED);
   }
 
   // if requested shortURL (or longURL) does not exist in db, render error page
   const { shortURL } = req.params;
   if (!urlDatabase[shortURL] || !urlDatabase[shortURL].longURL) {
-    return redirectError(templateVars, res, 404, ERROR_404);
+    return redirectError(templateVars, res, 404, ERROR_MSG_NOT_FOUND);
   }
 
   // if shortURL was not created by the current user, render error page
   const shortURLauthorId = urlDatabase[shortURL].userId;
   if (shortURLauthorId !== req.session.user_id) {
-    return redirectError(templateVars, res, 403, ERROR_403);
+    return redirectError(templateVars, res, 403, ERROR_MSG_NOT_AUTHORIZED);
   }
 
   const longURL = urlDatabase[shortURL].longURL;
@@ -151,12 +151,12 @@ app.post("/login", (req, res) => {
   const templateVars = { user: null };
 
   if (!email || !password) {
-    return redirectError(templateVars, res, 400, ERROR_400a);
+    return redirectError(templateVars, res, 400, ERROR_MSG_EMPTY_FIELD);
   }
 
   const userId = findUserByEmail(email, password, userDatabase);
   if (!userId) {
-    return redirectError(templateVars, res, 400, ERROR_400b);
+    return redirectError(templateVars, res, 400, ERROR_MSG_INCORRECT_AUTH);
   }
 
   req.session.user_id = userId;
@@ -175,11 +175,11 @@ app.post("/register", (req, res) => {
   const templateVars = { user: null };
 
   if (!email || !password) {
-    return redirectError(templateVars, res, 400, ERROR_400a);
+    return redirectError(templateVars, res, 400, ERROR_MSG_EMPTY_FIELD);
   }
 
   if (findUserByEmail(email, password, userDatabase)) {
-    return redirectError(templateVars, res, 400, ERROR_400c);
+    return redirectError(templateVars, res, 400, ERROR_MSG_EMAIL_EXISTS);
   }
 
   // create new user
@@ -196,7 +196,7 @@ app.post("/urls", (req, res) => {
   const templateVars = { user: null };
 
   if (!currentUser) {
-    return redirectUser(templateVars, res, ERROR_401);
+    return redirectUser(templateVars, res, ERROR_MSG_NOT_AUTHENTICATED);
   }
 
   // create new shortURL
@@ -212,13 +212,13 @@ app.post("/urls/:shortURL", (req, res) => {
   const templateVars = { user: currentUser };
 
   if (!currentUser) {
-    return redirectUser(templateVars, res, ERROR_401);
+    return redirectUser(templateVars, res, ERROR_MSG_NOT_AUTHENTICATED);
   }
 
   // restrict user from updating a shortURL that they did not create
   const { shortURL } = req.params;
   if (!belongsToUser(shortURL, req.session.user_id, urlDatabase)) {
-    return redirectError(templateVars, res, 403, ERROR_403);
+    return redirectError(templateVars, res, 403, ERROR_MSG_NOT_AUTHORIZED);
   }
 
   const { longURL } = req.body;
@@ -232,13 +232,13 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   const templateVars = { user: currentUser };
 
   if (!currentUser) {
-    return redirectUser(templateVars, res, ERROR_401);
+    return redirectUser(templateVars, res, ERROR_MSG_NOT_AUTHENTICATED);
   }
 
   // restrict user from deleting a shortURL that they did not create
   const { shortURL } = req.params;
   if (!belongsToUser(shortURL, req.session.user_id, urlDatabase)) {
-    return redirectError(templateVars, res, 403, ERROR_403);
+    return redirectError(templateVars, res, 403, ERROR_MSG_NOT_AUTHORIZED);
   }
 
   delete urlDatabase[shortURL];
@@ -247,8 +247,8 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 // error handling
 app.get("*", (req, res) => {
-  const templateVars = { user: null, message: ERROR_404 };
-  return res.status(404).render("error_page", templateVars);
+  const templateVars = { user: null, message: ERROR_MSG_NOT_FOUND };
+  return res.status(404).render("error_MSGe", templateVars);
 });
 
 // start server
