@@ -30,6 +30,11 @@ app.use(
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
+const redirectUser = (tv, res) => {
+  tv.message = ERROR_401;
+  return res.status(401).render("auth_prompt", tv);
+};
+
 // ROUTE HANDLERS
 // home page - will redirect to other pages based on auth status
 app.get("/", (req, res) => {
@@ -74,8 +79,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { user: currentUser };
 
   if (!currentUser) {
-    templateVars.message = ERROR_401;
-    return res.status(401).render("auth_prompt", templateVars);
+    return redirectUser(templateVars, res);
   }
 
   // if shortURL does not exist, render error page
@@ -104,8 +108,7 @@ app.get("/u/:shortURL", (req, res) => {
   const templateVars = { user: currentUser };
 
   if (!currentUser) {
-    templateVars.message = ERROR_401;
-    return res.status(401).render("auth_prompt", templateVars);
+    return redirectUser(templateVars, res);
   }
 
   // if requested shortURL (or longURL) does not exist in db, render error page
@@ -205,8 +208,7 @@ app.post("/urls", (req, res) => {
   const templateVars = { user: null };
 
   if (!currentUser) {
-    templateVars.message = ERROR_401;
-    return res.status(401).render("auth_prompt", templateVars);
+    return redirectUser(templateVars, res);
   }
 
   // create new shortURL
@@ -222,8 +224,7 @@ app.post("/urls/:shortURL", (req, res) => {
   const templateVars = { user: currentUser };
 
   if (!currentUser) {
-    templateVars.message = ERROR_401;
-    return res.status(401).render("auth_prompt", templateVars);
+    return redirectUser(templateVars, res);
   }
 
   // restrict user from updating a shortURL that they did not create
@@ -244,8 +245,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   const templateVars = { user: currentUser };
 
   if (!currentUser) {
-    templateVars.message = ERROR_401;
-    return res.status(401).render("auth_prompt", templateVars);
+    return redirectUser(templateVars, res);
   }
 
   // restrict user from deleting a shortURL that they did not create
