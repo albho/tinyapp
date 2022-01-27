@@ -12,7 +12,9 @@ const { generateId } = require("./helpers/generateId");
 const { belongsToUser } = require("./helpers/belongsToUser");
 const { urlsForUser } = require("./helpers/urlsForUser");
 const {
-  ERROR_400,
+  ERROR_400a,
+  ERROR_400b,
+  ERROR_400c,
   ERROR_401,
   ERROR_403,
   ERROR_404,
@@ -113,6 +115,13 @@ app.get("/u/:shortURL", (req, res) => {
     return res.status(404).render("error_page", templateVars);
   }
 
+  // if shortURL was not created by the current user, render error page
+  const shortURLauthorId = urlDatabase[shortURL].userId;
+  if (shortURLauthorId !== req.session.user_id) {
+    templateVars.message = ERROR_403;
+    return res.status(403).render("error_page", templateVars);
+  }
+
   const longURL = urlDatabase[shortURL].longURL;
   res.redirect(longURL);
 });
@@ -147,13 +156,13 @@ app.post("/login", (req, res) => {
   const templateVars = { user: null };
 
   if (!email || !password) {
-    templateVars.message = ERROR_400;
+    templateVars.message = ERROR_400a;
     return res.status(400).render("error_page", templateVars);
   }
 
   const userId = findUserByEmail(email, password, userDatabase);
   if (!userId) {
-    templateVars.message = ERROR_400;
+    templateVars.message = ERROR_400b;
     return res.status(400).render("error_page", templateVars);
   }
 
@@ -173,12 +182,12 @@ app.post("/register", (req, res) => {
   const templateVars = { user: null };
 
   if (!email || !password) {
-    templateVars.message = ERROR_400;
+    templateVars.message = ERROR_400a;
     return res.status(400).render("error_page", templateVars);
   }
 
   if (findUserByEmail(email, password, userDatabase)) {
-    templateVars.message = ERROR_400;
+    templateVars.message = ERROR_400c;
     return res.status(400).render("error_page", templateVars);
   }
 
