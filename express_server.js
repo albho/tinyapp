@@ -157,8 +157,7 @@ app.post("/login", (req, res) => {
 
 // log user out
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
-  res.clearCookie("user_id.sig");
+  req.session = null;
   return res.redirect("/urls");
 });
 
@@ -245,7 +244,6 @@ app.get("*", (req, res) => {
   return redirectError(templateVars, res, 404, ERROR_MSG_NOT_FOUND);
 });
 
-// start server
 app.listen(PORT, () => {
   console.log(`TinyApp listening on port ${PORT}!`);
 });
