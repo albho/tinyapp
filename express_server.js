@@ -8,14 +8,13 @@ const methodOverride = require("method-override");
 
 const { urlDatabase } = require("./databases/urlDatabase");
 const { userDatabase } = require("./databases/userDatabase");
+const { generateId } = require("./helpers/generateId");
+const { redirectUser, redirectError } = require("./helpers/resRedirects");
 const { utilities } = require("./helpers/utilities");
 const { getUserId, belongsToUser, getUserByEmail, urlsForUser } = utilities(
   urlDatabase,
   userDatabase
 );
-
-const { generateId } = require("./helpers/generateId");
-const { redirectUser, redirectError } = require("./helpers/resRedirects");
 const {
   ERROR_MSG_EMPTY_FIELD,
   ERROR_MSG_INCORRECT_AUTH,
@@ -27,7 +26,7 @@ const {
 app.use(
   cookieSession({
     name: "user_id",
-    keys: ["terrible_secret", "another_bad_secret"],
+    keys: ["secret_key_123", "secret_key_xyz"],
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
   })
 );
